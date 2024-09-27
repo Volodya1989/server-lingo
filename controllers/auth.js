@@ -85,7 +85,8 @@ const resendVerifyEmail = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password, username } = req.body;
+  console.log(req.body);
+  const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     throw HttpError(401, "Email or password invalid");
@@ -108,8 +109,11 @@ const login = async (req, res) => {
 
   res.json({
     token,
-    user: { email: user.email, subscription: user.subscription },
-    username,
+    user: {
+      email: user.email,
+      subscription: user.subscription,
+      username: user.username,
+    },
   });
 };
 

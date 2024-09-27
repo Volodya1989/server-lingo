@@ -15,7 +15,7 @@ const { SECRET_KEY, BASE_URL } = process.env;
 const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
 const register = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
   const user = await User.findOne({ email });
 
   if (user) {
@@ -23,26 +23,25 @@ const register = async (req, res) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
-  const avatarURL = gravatar.url(email);
+  // const avatarURL = gravatar.url(email);
   const verificationToken = nanoid();
 
   const newUser = await User.create({
     ...req.body,
     password: hashPassword,
-    avatarURL,
+    // avatarURL,
     verificationToken,
   });
-
   const verifyEmail = {
     to: email,
-    subject: "Verify email",
-    html: `<a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">Click verify email</a>`,
+    subject: "LearnLingo | Verify Email for Registration",
+    html: `Hello ${username}, <br> Please click on the link to verify your email for to register for LearnLingo.<br> <a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">Click here to verify email</a>`,
   };
 
   await sendEmail(verifyEmail);
 
   res.status(201).json({
-    user: { email: newUser.email, subscription: newUser.subscription },
+    user: { email: newUser.email, username: newUser.username },
   });
 };
 
@@ -63,7 +62,8 @@ const verifyEmail = async (req, res) => {
 };
 
 const resendVerifyEmail = async (req, res) => {
-  const { email } = req.body;
+  console.log(req.body);
+  const { email, username } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     throw HttpError(401, "Email not found");
@@ -71,17 +71,16 @@ const resendVerifyEmail = async (req, res) => {
   if (user.verify) {
     throw HttpError(401, "Verification has already been passed");
   }
-
   const verifyEmail = {
     to: email,
-    subject: "Verify email",
-    html: `<a target="_blank" href="${BASE_URL}/users/verify/${user.verificationCode}">Click verify email</a>`,
+    subject: "LearnLingo | Verify Email for Registration",
+    html: `Hello ${username}, <br> Please click on the link to verify your email for to register for LearnLingo.<br> <a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">Click here to verify email</a>`,
   };
 
   await sendEmail(verifyEmail);
 
   res.status(200).json({
-    message: "Verification email sent",
+    message: `Verification email sent`,
   });
 };
 
